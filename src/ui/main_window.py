@@ -11,7 +11,8 @@ from src.ui.map_widget import MapWidget
 from src.ui.charts import ChartsWidget
 from src.ui.status_panel import StatusPanel
 from src.ui.alarm_panel import AlarmPanel
-from src.database.database_manager import DatabaseManager # YENİ!
+from src.ui.waypoint_panel import WaypointPanel
+from src.database.database_manager import DatabaseManager  # YENİ!
 
 
 class MainWindow(QMainWindow):
@@ -36,6 +37,7 @@ class MainWindow(QMainWindow):
 
         self.map_widget = MapWidget()
         self.charts_widget = ChartsWidget()
+        self.waypoint_panel = WaypointPanel()
 
         # Status panel
         try:
@@ -49,7 +51,7 @@ class MainWindow(QMainWindow):
             self.alarm_panel = AlarmPanel()
         except:
             print(f"Alarm Panel Oluşturulamadı:{e}")
-            self.alarm_panel=None
+            self.alarm_panel = None
 
         # Tab düzeni
         self._setup_tabs()
@@ -81,6 +83,7 @@ class MainWindow(QMainWindow):
 
         # Status tab'dan sonra ekleyin
         tabs.addTab(self._create_alarm_tab(), "🚨 Alarmlar")
+        tabs.addTab(self._create_waypoint_tab(), "🗺️ Görev")
 
         # 5. VERİTABANI TAB - YENİ!
         tabs.addTab(self._create_database_tab(), "💾 Veritabanı")
@@ -98,6 +101,13 @@ class MainWindow(QMainWindow):
         widget = QWidget()
         layout = QVBoxLayout()
         layout.addWidget(self.alarm_panel)
+        widget.setLayout(layout)
+        return widget
+
+    def _create_waypoint_tab(self):
+        widget = QWidget()
+        layout = QVBoxLayout()
+        layout.addWidget(self.waypoint_panel)
         widget.setLayout(layout)
         return widget
 
@@ -301,6 +311,10 @@ class MainWindow(QMainWindow):
             # Acil durdur
             self.status_panel.emergencyStopRequested.connect(self.emergency_stop)
 
+            # Waypoint panel sinyallerini bağla
+            self.waypoint_panel.waypointAdded.connect(self.map_widget.add_waypoint)
+            self.waypoint_panel.missionCleared.connect(self.map_widget.clear_waypoints)
+
             print("✅ Tüm sinyaller bağlandı!")
 
     def clear_graphs(self):
@@ -361,11 +375,13 @@ class MainWindow(QMainWindow):
 
     # Bu kısım dosyanın en sonunda olmalı ve düzeltilmeli:
 
+
 def main():
-        app = QApplication(sys.argv)
-        win = MainWindow()
-        win.show()
-        sys.exit(app.exec())
+    app = QApplication(sys.argv)
+    win = MainWindow()
+    win.show()
+    sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()

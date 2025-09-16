@@ -91,3 +91,11 @@ class MapWidget(QWebEngineView):
     def center_map(self):
         """Haritayı mevcut konuma ortala"""
         self._generate_map(self.current_lat, self.current_lon)
+
+    def add_waypoint(self, lat, lon, alt):
+        """Haritaya waypoint ekle"""
+        print(f"📍 Waypoint eklendi: {lat:.5f}, {lon:.5f}, {alt}m")
+
+    def clear_waypoints(self):
+        """Waypoint'leri temizle"""
+        print("🗑️ Waypoint'ler temizlendi")
