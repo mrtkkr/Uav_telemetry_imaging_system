@@ -126,7 +126,7 @@ class TelemetryWorker(QThread):
 
         # Batarya seviyesini azalt
         self.flight_time += 1
-        battery_drain = random.uniform(0.05, 0.15)  # Dakikada %0.05-0.15
+        battery_drain = random.uniform(0.30, 0.45)  # Dakikada %0.05-0.15
         self.battery_level = max(0, self.battery_level - battery_drain)
 
         # Kritik batarya durumunda inmesi için rakımı azalt

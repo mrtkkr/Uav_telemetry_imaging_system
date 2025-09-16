@@ -13,6 +13,7 @@ class GPSData(BaseModel):
     longitude: float = Field(..., description="Boylam")
     altitude: float = Field(..., description="Rakım (metre)")
     fix_quality: int = 1  # örnek varsayılan (1: GPS fix)
+    satellites: int = 10  # BUNU EKLEYİN
 
 
 class AttitudeData(BaseModel):

@@ -10,6 +10,7 @@ from src.telemetry.data_models import TelemetryPacket
 from src.ui.map_widget import MapWidget
 from src.ui.charts import ChartsWidget
 from src.ui.status_panel import StatusPanel
+from src.ui.alarm_panel import AlarmPanel
 from src.database.database_manager import DatabaseManager # YENİ!
 
 
@@ -43,6 +44,13 @@ class MainWindow(QMainWindow):
             print(f"Status panel oluşturulamadı: {e}")
             self.status_panel = None
 
+        try:
+            # Status panel'den sonra ekleyin
+            self.alarm_panel = AlarmPanel()
+        except:
+            print(f"Alarm Panel Oluşturulamadı:{e}")
+            self.alarm_panel=None
+
         # Tab düzeni
         self._setup_tabs()
 
@@ -71,6 +79,9 @@ class MainWindow(QMainWindow):
         if self.status_panel:
             tabs.addTab(self._create_status_tab(), "⚙️ Durum")
 
+        # Status tab'dan sonra ekleyin
+        tabs.addTab(self._create_alarm_tab(), "🚨 Alarmlar")
+
         # 5. VERİTABANI TAB - YENİ!
         tabs.addTab(self._create_database_tab(), "💾 Veritabanı")
 
@@ -80,6 +91,13 @@ class MainWindow(QMainWindow):
         widget = QWidget()
         layout = QVBoxLayout()
         layout.addWidget(self.map_widget)
+        widget.setLayout(layout)
+        return widget
+
+    def _create_alarm_tab(self):
+        widget = QWidget()
+        layout = QVBoxLayout()
+        layout.addWidget(self.alarm_panel)
         widget.setLayout(layout)
         return widget
 
@@ -258,6 +276,9 @@ class MainWindow(QMainWindow):
 
         # 3. Grafikleri güncelle
         self.charts_widget.update_data(packet)
+
+        # 5. Alarm kontrolü
+        self.alarm_panel.check_telemetry_alarms(packet)
 
         # 4. Status paneli güncelle (eğer varsa)
         if self.status_panel:
