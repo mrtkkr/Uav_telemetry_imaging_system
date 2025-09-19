@@ -62,6 +62,13 @@ class DatabaseManager:
         print(f"Yeni uçuş oturumu başlatıldı: {session_name} (ID: {session_id})")
         return session_id
 
+    def close_connection(self):
+        """Veritabanı bağlantısını kapat"""
+        # SQLAlchemy engine'i kapatır
+        if hasattr(self, 'engine'):
+            self.engine.dispose()
+        print("Veritabanı bağlantısı kapatıldı")
+
     def end_flight_session(self, session_id: int = None):
         """Uçuş oturumunu sonlandır"""
         if not session_id:

@@ -1,18 +1,18 @@
 # src/ui/main_window.py - DATABASE ENTEGRASYONU
 import sys
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                               QLabel, QTabWidget, QMessageBox, QPushButton, QHBoxLayout)
+                               QLabel, QTabWidget, QMessageBox, QPushButton, QHBoxLayout, QCheckBox)
 from PySide6.QtCore import Qt
 
 # Import'lar
-from src.telemetry.data_generator import TelemetryWorker
-from src.telemetry.data_models import TelemetryPacket
-from src.ui.map_widget import MapWidget
-from src.ui.charts import ChartsWidget
-from src.ui.status_panel import StatusPanel
-from src.ui.alarm_panel import AlarmPanel
-from src.ui.waypoint_panel import WaypointPanel
-from src.database.database_manager import DatabaseManager  # YENİ!
+from ..telemetry.data_generator import TelemetryWorker
+from ..telemetry.data_models import TelemetryPacket
+from ..ui.map_widget import MapWidget
+from ..ui.charts import ChartsWidget
+from ..ui.status_panel import StatusPanel
+from ..ui.alarm_panel import AlarmPanel
+from ..ui.waypoint_panel import WaypointPanel
+from ..database.database_manager import DatabaseManager  # YENİ!
 
 
 class MainWindow(QMainWindow):
@@ -38,6 +38,13 @@ class MainWindow(QMainWindow):
         self.map_widget = MapWidget()
         self.charts_widget = ChartsWidget()
         self.waypoint_panel = WaypointPanel()
+
+        # Status panel'den önce:
+        self.mavlink_checkbox = QCheckBox("MAVLink Protokolü Kullan")
+        self.mavlink_checkbox.setChecked(False)
+        self.mavlink_checkbox.stateChanged.connect(self.toggle_mavlink_mode)
+        print("MAVLink checkbox oluşturuldu ve signal bağlandı")  # TEST
+        self.mavlink_checkbox.setStyleSheet("QCheckBox::indicator { width: 20px; height: 20px; }")
 
         # Status panel
         try:
@@ -97,6 +104,19 @@ class MainWindow(QMainWindow):
         widget.setLayout(layout)
         return widget
 
+    def _create_status_tab(self):
+        widget = QWidget()
+        layout = QVBoxLayout()
+
+        # MAVLink seçici ekle
+        layout.addWidget(QLabel("Protokol Seçimi:"))
+        layout.addWidget(self.mavlink_checkbox)
+
+        if self.status_panel:
+            layout.addWidget(self.status_panel)
+        widget.setLayout(layout)
+        return widget
+
     def _create_alarm_tab(self):
         widget = QWidget()
         layout = QVBoxLayout()
@@ -125,12 +145,6 @@ class MainWindow(QMainWindow):
         widget.setLayout(layout)
         return widget
 
-    def _create_status_tab(self):
-        widget = QWidget()
-        layout = QVBoxLayout()
-        layout.addWidget(self.status_panel)
-        widget.setLayout(layout)
-        return widget
 
     def _create_database_tab(self):  # YENİ VERİTABANI SEKMESİ
         """Veritabanı yönetim sekmesi"""
@@ -182,6 +196,27 @@ class MainWindow(QMainWindow):
         self.refresh_database_info()
 
         return widget
+
+    def toggle_mavlink_mode(self, checked):
+        print("CHECKBOX TIKLANДИ!")
+        is_mavlink = bool(checked)  # 0,2 değerini True/False'a çevir
+        print(f"MAVLink modu: {'Açık' if is_mavlink else 'Kapalı'}")
+        print(f"Checkbox durumu: {checked} -> {is_mavlink}")
+        self.restart_worker_with_mavlink(is_mavlink)
+
+    def restart_worker_with_mavlink(self, use_mavlink):
+        print(f"Worker yeniden başlatılıyor, use_mavlink={use_mavlink}")  # DEBUG
+
+        if hasattr(self, 'worker'):
+            self.worker.quit()
+            self.worker.wait()
+
+        self.worker = TelemetryWorker(
+            database_manager=self.db_manager,
+            use_mavlink=use_mavlink  # Bu parametre gidiyor mu?
+        )
+        self.worker.new_data.connect(self.update_telemetry)
+        self.worker.start()
 
     def refresh_database_info(self):
         """Veritabanı bilgilerini yenile"""
