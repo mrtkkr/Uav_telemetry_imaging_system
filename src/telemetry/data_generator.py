@@ -11,7 +11,6 @@ from PySide6.QtCore import QThread, Signal, QTimer
 from .data_models import TelemetryPacket, GPSData, AttitudeData
 
 
-
 class TelemetryWorker(QThread):
     """Telemetri veri üretici - Veritabanı entegrasyonlu"""
 
@@ -20,18 +19,21 @@ class TelemetryWorker(QThread):
     def __init__(self, database_manager=None, use_mavlink=False, parent=None):
         super().__init__(parent)
         self.database_manager = database_manager
-        self.use_mavlink = use_mavlink  # YENİ
+        self.use_mavlink = use_mavlink
         self.running = True
 
-        # MAVLink manager (eğer kullanılacaksa)
         self.mavlink_manager = None
+        print(f"TelemetryWorker başlatılıyor, use_mavlink={use_mavlink}")  # DEBUG
+
         if self.use_mavlink:
+            print("MAVLink Manager oluşturuluyor...")  # DEBUG
             try:
-                from ..mavlink.mavlink_manager import MAVLinkManager
+                from src.mavlink.mavlink_manager import MAVLinkManager
+                print("MAVLink Manager import edildi")  # DEBUG
                 self.mavlink_manager = MAVLinkManager()
-                print("MAVLink modu aktif")
-            except ImportError as e:
-                print(f"MAVLink import hatası: {e}")
+                print("MAVLink Manager oluşturuldu")  # DEBUG
+            except Exception as e:
+                print(f"MAVLink Manager hatası: {e}")  # DEBUG
                 self.mavlink_manager = None
                 self.use_mavlink = False
 
@@ -139,7 +141,6 @@ class TelemetryWorker(QThread):
 
     def _create_mavlink_packet(self, gps, attitude=None):
         """MAVLink verilerinden telemetri paketi oluştur"""
-
 
         # Battery verisi
         battery_voltage = 24.0

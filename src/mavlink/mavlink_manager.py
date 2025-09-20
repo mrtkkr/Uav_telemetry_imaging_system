@@ -31,21 +31,13 @@ class MAVLinkManager:
 
     def create_simulated_connection(self):
         """Simüle MAVLink bağlantısı oluştur"""
-        try:
-            # UDP bağlantısı simülasyonu
-            # Gerçek projede 'udp:localhost:14550' kullanılabilir
-            self.connection = mavutil.mavlink_connection('tcp:localhost:5760',
-                                                         source_system=255)
-            self.is_connected = True
-            print("Simüle MAVLink bağlantısı oluşturuldu")
-            return True
 
-        except Exception as e:
-            print(f"MAVLink bağlantı hatası: {e}")
-            # Bağlantı kurulamazsa simüle modu aktif et
-            self.connection = None
-            self.is_connected = False
-            return False
+
+        # Simüle mod - gerçek bağlantı kurmuyoruz
+        self.connection = None
+        self.is_connected = True  # Simüle modda "bağlı" sayılır
+        print("Simüle MAVLink modu aktif (gerçek bağlantı yok)")
+        return True
 
     def start_listening(self):
         """MAVLink mesaj dinleme thread'ini başlat"""

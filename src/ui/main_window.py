@@ -5,14 +5,15 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PySide6.QtCore import Qt
 
 # Import'lar
-from ..telemetry.data_generator import TelemetryWorker
-from ..telemetry.data_models import TelemetryPacket
-from ..ui.map_widget import MapWidget
-from ..ui.charts import ChartsWidget
-from ..ui.status_panel import StatusPanel
-from ..ui.alarm_panel import AlarmPanel
-from ..ui.waypoint_panel import WaypointPanel
-from ..database.database_manager import DatabaseManager  # YENİ!
+#from Uav_telemetry_imaging_system.src.telemetry.data_generator import TelemetryWorker
+from src.telemetry.data_generator import TelemetryWorker
+from src.telemetry.data_models import TelemetryPacket
+from src.ui.map_widget import MapWidget
+from src.ui.charts import ChartsWidget
+from src.ui.status_panel import StatusPanel
+from src.ui.alarm_panel import AlarmPanel
+from src.ui.waypoint_panel import WaypointPanel
+from src.database.database_manager import DatabaseManager
 
 
 class MainWindow(QMainWindow):
@@ -205,18 +206,27 @@ class MainWindow(QMainWindow):
         self.restart_worker_with_mavlink(is_mavlink)
 
     def restart_worker_with_mavlink(self, use_mavlink):
-        print(f"Worker yeniden başlatılıyor, use_mavlink={use_mavlink}")  # DEBUG
+        print(f"Worker yeniden başlatılıyor, use_mavlink={use_mavlink}")
 
         if hasattr(self, 'worker'):
+            print("Eski worker durduruluyor...")
+            self.worker.running = False  # Worker'ı durdur
             self.worker.quit()
-            self.worker.wait()
+            if not self.worker.wait(3000):  # 3 saniye timeout
+                print("Worker zorla sonlandırılıyor...")
+                self.worker.terminate()
+            print("Eski worker durduruldu")
 
+        print("Yeni worker oluşturuluyor...")
         self.worker = TelemetryWorker(
             database_manager=self.db_manager,
-            use_mavlink=use_mavlink  # Bu parametre gidiyor mu?
+            use_mavlink=use_mavlink
         )
+        print("Worker oluşturuldu, sinyal bağlanıyor...")
         self.worker.new_data.connect(self.update_telemetry)
+        print("Worker başlatılıyor...")
         self.worker.start()
+        print("Worker başlatıldı!")
 
     def refresh_database_info(self):
         """Veritabanı bilgilerini yenile"""
