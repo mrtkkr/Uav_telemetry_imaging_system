@@ -3,3 +3,7 @@ matplotlib~=3.10.6
 folium~=0.20.0
 pyside6~=6.9.2
 pydantic~=2.11.9
+SQLAlchemy>=2.0.0
+pandas>=2.0.0
+pymavlink>=2.4.0
+pyqtgraph>=0.13.0

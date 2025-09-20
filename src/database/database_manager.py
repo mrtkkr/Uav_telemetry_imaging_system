@@ -29,6 +29,14 @@ class DatabaseManager:
         Base.metadata.create_all(self.engine)
         print(f"Veritabanı başlatıldı: {self.db_path.absolute()}")
 
+    def __del__(self):
+        """Destructor - bağlantıları temizle"""
+        try:
+            if hasattr(self, 'engine'):
+                self.engine.dispose()
+        except:
+            pass
+
     @contextmanager
     def get_session(self):
         """Database session context manager"""
@@ -64,10 +72,15 @@ class DatabaseManager:
 
     def close_connection(self):
         """Veritabanı bağlantısını kapat"""
-        # SQLAlchemy engine'i kapatır
-        if hasattr(self, 'engine'):
-            self.engine.dispose()
-        print("Veritabanı bağlantısı kapatıldı")
+        try:
+            # Tüm session'ları kapat
+            self.SessionLocal.close_all()
+            # Engine'i dispose et
+            if hasattr(self, 'engine'):
+                self.engine.dispose()
+            print("Veritabanı bağlantısı kapatıldı")
+        except Exception as e:
+            print(f"Bağlantı kapatma hatası: {e}")
 
     def end_flight_session(self, session_id: int = None):
         """Uçuş oturumunu sonlandır"""
